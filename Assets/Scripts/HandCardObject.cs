@@ -30,6 +30,7 @@ public class HandCardObject : ScriptableObject
         public int QuantityOfEffect;
         public string ReplaceType;
         public string ReplaceToType;
+        public List<int> RandomIndexesToChange;
     }
 
     public List<EffectOfCard> effects;

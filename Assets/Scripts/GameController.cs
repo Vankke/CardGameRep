@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
+    public Slider progressBar;
+    public TextMeshProUGUI progressPercentage;
+
     QuestController questController;
     public List<CardObject> TableDeck;
     public List<HandCardObject> HandDeck;
@@ -27,6 +30,8 @@ public class GameController : MonoBehaviour
     public int StepIndex;
     public int CurrentHour;
     public int CurrentQuestsGroup;
+    public int NumberOfOverallQuests;
+    public int NumberOfCompletedQuests;
 
     public Vector3 PointerTarget;
 
@@ -48,6 +53,11 @@ public class GameController : MonoBehaviour
         questController = GameObject.Find("QuestController").GetComponent<QuestController>();
         CardsOnTable = new List<CardController>();
         playingField = GameObject.Find("Playing field");
+
+        foreach(QuestController.QuestGroup group in questController.QuestGroups)
+        {
+            NumberOfOverallQuests += group.Quests.Count;
+        }
 
         var cardPlace = CardPlacePrefab;
 
@@ -110,6 +120,10 @@ public class GameController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             MakeNewStep();
+            if (ScreenBlocker.activeInHierarchy)
+            {
+                RestartGame();
+            }
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -122,6 +136,7 @@ public class GameController : MonoBehaviour
         {
             DeselectCard();
         }
+        
     }
 
     public void PlaceCardOnTable(CardObject card, int index, bool NowPlacingCards)
@@ -158,6 +173,10 @@ public class GameController : MonoBehaviour
         handCardController.gameController = this;
         //handCardController.Parent = (RectTransform)ZaHand.transform;
         CardsInHand.Add(handCardController);
+        foreach(HandCardObject.EffectOfCard ef in handCardController.handCard.effects)
+        {
+            ef.RandomIndexesToChange.Clear();
+        }
     }
     public void RemoveCardFromHand(CardUIController removedCard)
     {
@@ -464,13 +483,16 @@ public class GameController : MonoBehaviour
                             }
                             questPanel.quest.Completed = true;
                             questPanel.CompletionMarker.SetActive(true);
+                            NumberOfCompletedQuests++;
+                            progressBar.value = (float)NumberOfCompletedQuests / (float)NumberOfOverallQuests;
+                            progressPercentage.text = (float)NumberOfCompletedQuests / (float)NumberOfOverallQuests * 100 + "%";
                         }
                     }
                     else if (!QuestWon)
                     {
                         questPanel.quest.WinTurnTracker = 0;
                     }
-                    if (QuestLost && !QuestWon)
+                    if (QuestLost && !QuestWon)  //ÊÂÅÑÒ ÏĞÎÈÃĞÀÍ
                     {
                         questPanel.quest.LoseTurnTracker++;
                         if (questPanel.quest.LoseTurnTracker > questPanel.quest.TurnQToLose)
@@ -646,7 +668,7 @@ public class GameController : MonoBehaviour
                     }
                     break;
                 case HandCardObject.AreaOfEffect.RANDOM_CARDS:
-                    if (cardController.RandomIndexesToChange.Count == 0)
+                    if (effect.RandomIndexesToChange.Count == 0)
                     {
                         var TableCardsPlaceholder = new List<int>();//ÓÁÅÆÄÀÅÌÑß, ×ÒÎ ÂÛÁĞÀÍÍÛÅ ĞÀÍÄÎÌÍÛÅ ÊÀĞÒÛ ÍÀ ÑÒÎËÅ ÁÓÄÓÒ ÏÎÄÕÎÄÈÒÜ ÏÎÄ ÓÑËÎÂÈß (çàêîììåí÷.)
                         for (int i = 0; i < CardsOnTable.Count; i++)
@@ -690,11 +712,11 @@ public class GameController : MonoBehaviour
                                 TableCardsPlaceholder.RemoveAt(randomPositionOfIndex);
                             }
                         }                  
-                        cardController.RandomIndexesToChange = indexesToChange;
+                        effect.RandomIndexesToChange.AddRange(indexesToChange);
                     }
                     else
                     {
-                        indexesToChange = cardController.RandomIndexesToChange;
+                        indexesToChange = effect.RandomIndexesToChange;
                     }
                     break;
                 default:

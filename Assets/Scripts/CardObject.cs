@@ -1,4 +1,5 @@
 //using TMPro;
+using System.Collections.Generic;
 using UnityEngine;
 [CreateAssetMenu]
 public class CardObject : ScriptableObject
@@ -11,4 +12,5 @@ public class CardObject : ScriptableObject
     public string description;
     public string Type;
     public CardColor cardColor;
+    //public List<int> RandomIndexesToChange;
 }
