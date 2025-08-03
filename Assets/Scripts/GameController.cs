@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
+    public Slider progressBar;
+    public TextMeshProUGUI progressPercentage;
+
     QuestController questController;
     public List<CardObject> TableDeck;
     public List<HandCardObject> HandDeck;
@@ -27,6 +30,8 @@ public class GameController : MonoBehaviour
     public int StepIndex;
     public int CurrentHour;
     public int CurrentQuestsGroup;
+    public int NumberOfOverallQuests;
+    public int NumberOfCompletedQuests;
 
     public Vector3 PointerTarget;
 
@@ -38,6 +43,7 @@ public class GameController : MonoBehaviour
     public Sprite WinSprite;
     public Sprite LoseSprite;
     public GameObject MarkerParticles;
+    public GameObject LoseParticles;
 
     public int DesiredNumberOfSteps;
     public float DistFromCenter;
@@ -48,6 +54,11 @@ public class GameController : MonoBehaviour
         questController = GameObject.Find("QuestController").GetComponent<QuestController>();
         CardsOnTable = new List<CardController>();
         playingField = GameObject.Find("Playing field");
+
+        foreach(QuestController.QuestGroup group in questController.QuestGroups)
+        {
+            NumberOfOverallQuests += group.Quests.Count;
+        }
 
         var cardPlace = CardPlacePrefab;
 
@@ -104,12 +115,27 @@ public class GameController : MonoBehaviour
         //MakeNewStep();
     }
 
+    float timePassed = 0.5f;
+    bool gameStarted = false;
     void Update()
     {
+        if(timePassed > 0)
+        {
+            timePassed -= Time.deltaTime;
+        }
+        if(timePassed < 0 && !gameStarted)
+        {
+            gameStarted = true;
+            MakeNewStep();
+        }
         Pointer.transform.up = Vector3.Lerp(Pointer.transform.up, PointerTarget, 0.1f);
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            MakeNewStep();
+            //MakeNewStep();
+            if (ScreenBlocker.activeInHierarchy)
+            {
+                RestartGame();
+            }
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -122,6 +148,7 @@ public class GameController : MonoBehaviour
         {
             DeselectCard();
         }
+        
     }
 
     public void PlaceCardOnTable(CardObject card, int index, bool NowPlacingCards)
@@ -143,9 +170,17 @@ public class GameController : MonoBehaviour
             }
             else
             {
-                Destroy(CardsOnTable[index].gameObject);
+                var holder = CardsOnTable[index].gameObject;
                 CardsOnTable[index] = cardController;
+                var destroy = holder.AddComponent<DestroyInThreeSeconds>();
+                destroy.GetComponent<Animator>().enabled = false;
+                destroy.TimeToDestroy = 0.5f;
+                destroy.RescaleBeforeDestroy = true;
             }
+            /**if (StepIndex != 0)
+            {
+                MakeNewStep();
+            }*/
         }
     }
 
@@ -158,6 +193,10 @@ public class GameController : MonoBehaviour
         handCardController.gameController = this;
         //handCardController.Parent = (RectTransform)ZaHand.transform;
         CardsInHand.Add(handCardController);
+        foreach(HandCardObject.EffectOfCard ef in handCardController.handCard.effects)
+        {
+            ef.RandomIndexesToChange.Clear();
+        }
     }
     public void RemoveCardFromHand(CardUIController removedCard)
     {
@@ -464,20 +503,23 @@ public class GameController : MonoBehaviour
                             }
                             questPanel.quest.Completed = true;
                             questPanel.CompletionMarker.SetActive(true);
+                            NumberOfCompletedQuests++;
+                            progressBar.value = (float)NumberOfCompletedQuests / (float)NumberOfOverallQuests;
+                            progressPercentage.text = (float)NumberOfCompletedQuests / (float)NumberOfOverallQuests * 100 + "%";
                         }
                     }
                     else if (!QuestWon)
                     {
                         questPanel.quest.WinTurnTracker = 0;
                     }
-                    if (QuestLost && !QuestWon)
+                    if (QuestLost && !QuestWon)  //ÊÂÅÑÒ ÏĞÎÈÃĞÀÍ
                     {
                         questPanel.quest.LoseTurnTracker++;
                         if (questPanel.quest.LoseTurnTracker > questPanel.quest.TurnQToLose)
                         {
                             foreach (CardController card in ParticleCards)
                             {
-                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                                Instantiate(LoseParticles, card.transform.position, MarkerParticles.transform.rotation);
                             }
                             LoseAllGame();
                         }
@@ -646,7 +688,7 @@ public class GameController : MonoBehaviour
                     }
                     break;
                 case HandCardObject.AreaOfEffect.RANDOM_CARDS:
-                    if (cardController.RandomIndexesToChange.Count == 0)
+                    if (effect.RandomIndexesToChange.Count == 0)
                     {
                         var TableCardsPlaceholder = new List<int>();//ÓÁÅÆÄÀÅÌÑß, ×ÒÎ ÂÛÁĞÀÍÍÛÅ ĞÀÍÄÎÌÍÛÅ ÊÀĞÒÛ ÍÀ ÑÒÎËÅ ÁÓÄÓÒ ÏÎÄÕÎÄÈÒÜ ÏÎÄ ÓÑËÎÂÈß (çàêîììåí÷.)
                         for (int i = 0; i < CardsOnTable.Count; i++)
@@ -690,11 +732,11 @@ public class GameController : MonoBehaviour
                                 TableCardsPlaceholder.RemoveAt(randomPositionOfIndex);
                             }
                         }                  
-                        cardController.RandomIndexesToChange = indexesToChange;
+                        effect.RandomIndexesToChange.AddRange(indexesToChange);
                     }
                     else
                     {
-                        indexesToChange = cardController.RandomIndexesToChange;
+                        indexesToChange = effect.RandomIndexesToChange;
                     }
                     break;
                 default:
@@ -823,6 +865,7 @@ public class GameController : MonoBehaviour
         if (CardPlayedSuccesful && IsPlacingCardNow)
         {
             RemoveCardFromHand(cardController);
+            MakeNewStep();
         }
         else if(!CardPlayedSuccesful && IsPlacingCardNow)
         {

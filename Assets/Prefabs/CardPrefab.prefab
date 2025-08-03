@@ -473,6 +473,7 @@ GameObject:
   - component: {fileID: 5215787113728327396}
   - component: {fileID: 1049635335555073650}
   - component: {fileID: 8116983817532724534}
+  - component: {fileID: 246307370460099948}
   m_Layer: 0
   m_Name: CardPrefab
   m_TagString: Untagged
@@ -572,3 +573,25 @@ MonoBehaviour:
   SelectLightGameobject: {fileID: 6710412365188900663}
   BackgroundGameobject: {fileID: 2155499557799157152}
   gameController: {fileID: 0}
+--- !u!95 &246307370460099948
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6832303823047982993}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: dee67d9516050bf4993e4a60e53ece6d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

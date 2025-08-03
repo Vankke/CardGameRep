@@ -24,6 +24,7 @@ MonoBehaviour:
     QuantityOfEffect: 4
     ReplaceType: 
     ReplaceToType: 
+    RandomIndexesToChange: 00000000080000000700000006000000
   prefab: {fileID: 7635566131677002192, guid: ac3746b84c95979408b789dfae893384, type: 3}
   sprite: {fileID: 0}
   Description: Shuffle 4 random cards
