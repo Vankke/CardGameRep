@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d77625bb40290084687e95369f5f5e7a, type: 3}
-  m_Name: RedSwitchNextAdjacent
+  m_Name: ShuffleAll
   m_EditorClassIdentifier: 
-  cardColor: 0
+  cardColor: 1
   effects:
-  - areaOfEffect: 0
-    SwitchToRed: 1
+  - areaOfEffect: 5
+    SwitchToRed: 0
     SwitchToGreen: 0
     SwitchToOpposite: 0
-    Shuffle: 0
+    Shuffle: 1
     ReplaceToTypesActive: 0
-    ChangeCurrentToo: 0
-    QuantityOfEffect: 2
+    ChangeCurrentToo: 1
+    QuantityOfEffect: 0
     ReplaceType: 
     ReplaceToType: 
   prefab: {fileID: 7635566131677002192, guid: ac3746b84c95979408b789dfae893384, type: 3}
   sprite: {fileID: 0}
-  Description: SWITCH NEXT ADJACENT TO RED
+  Description: Shuffle all events

@@ -1,2 +1,13 @@
 fileFormatVersion: 2
 guid: f7c37ea7ef3615549a28879b631dacb4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - questPanelPrefab: {instanceID: 0}
+  - QuestPanelScroll: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

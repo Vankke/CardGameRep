@@ -15,5 +15,5 @@ MonoBehaviour:
   prefab: {fileID: 6832303823047982993, guid: 3cb89658e7d63d844af839c0abb8e7cb, type: 3}
   sprite: {fileID: 7445524387538162215, guid: d2da66bd5843d3f43b4db204cc0a260d, type: 3}
   description: "\u041E\u041F\u0418\u0421\u0410\u041D\u0418\u0415"
-  Type: TYPE2
+  Type: TYPE1
   cardColor: 0
