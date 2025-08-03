@@ -15,13 +15,13 @@ MonoBehaviour:
   cardColor: 1
   effects:
   - areaOfEffect: 2
-    SwitchToRed: 0
-    SwitchToGreen: 1
+    SwitchToRed: 1
+    SwitchToGreen: 0
     SwitchToOpposite: 0
     Shuffle: 0
     ReplaceToTypesActive: 0
     ChangeCurrentToo: 1
-    QuantityOfEffect: 0
+    QuantityOfEffect: 1
     ReplaceType: 
     ReplaceToType: 
   prefab: {fileID: 7635566131677002192, guid: ac3746b84c95979408b789dfae893384, type: 3}

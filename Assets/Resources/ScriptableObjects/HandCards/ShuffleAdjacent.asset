@@ -21,7 +21,7 @@ MonoBehaviour:
     Shuffle: 1
     ReplaceToTypesActive: 0
     ChangeCurrentToo: 1
-    QuantityOfEffect: 0
+    QuantityOfEffect: 2
     ReplaceType: 
     ReplaceToType: 
   prefab: {fileID: 7635566131677002192, guid: ac3746b84c95979408b789dfae893384, type: 3}

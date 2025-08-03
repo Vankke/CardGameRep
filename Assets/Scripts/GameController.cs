@@ -593,7 +593,7 @@ public class GameController : MonoBehaviour
                 case HandCardObject.AreaOfEffect.NEXT_ADJACENT:
                     for (int i = 0; i < effect.QuantityOfEffect + 1; i++)
                     {
-                        indexesToChange.Add((CurrentHour + i) % 12);
+                        indexesToChange.Add((CurrentHour + i) % DesiredNumberOfSteps);
                     }
                     if (!effect.ChangeCurrentToo)
                     {
@@ -606,7 +606,7 @@ public class GameController : MonoBehaviour
                         var indToChange = CurrentHour - i;
                         if (indToChange < 0)
                         {
-                            indToChange += 12;
+                            indToChange += DesiredNumberOfSteps;
                         }
                         indexesToChange.Add(indToChange);
                     }
@@ -616,19 +616,19 @@ public class GameController : MonoBehaviour
                     }
                     break;
                 case HandCardObject.AreaOfEffect.ALL_ADJACENT:
-                    for (int i = 0; i < effect.QuantityOfEffect + 1; i++)
+                    for (int i = 0; i < effect.QuantityOfEffect; i++)
                     {
-                        indexesToChange.Add((CurrentHour + i) % 12);
-                        var indToChange = CurrentHour - i;
+                        indexesToChange.Add((CurrentHour + 1 + i) % DesiredNumberOfSteps);
+                        var indToChange = CurrentHour - 1 - i;
                         if (indToChange < 0)
                         {
-                            indToChange += 12;
+                            indToChange += DesiredNumberOfSteps;
                         }
                         indexesToChange.Add(indToChange);
                     }
-                    if (!effect.ChangeCurrentToo)
+                    if (effect.ChangeCurrentToo)
                     {
-                        indexesToChange.Remove(CurrentHour);
+                        indexesToChange.Add(CurrentHour);
                     }
                     break;
                 case HandCardObject.AreaOfEffect.ALL_CARDS:
@@ -647,7 +647,7 @@ public class GameController : MonoBehaviour
                         var TableCardsPlaceholder = new List<int>();//саефдюеляъ, врн бшапюммше пюмднлмше йюпрш мю ярнке асдср ондундхрэ онд сякнбхъ (ГЮЙНЛЛЕМВ.)
                         for (int i = 0; i < CardsOnTable.Count; i++)
                         {
-                            if (effect.SwitchToGreen && CardsOnTable[i].card.cardColor == CardObject.CardColor.RED)
+                            /*if (effect.SwitchToGreen && CardsOnTable[i].card.cardColor == CardObject.CardColor.RED)
                             {
                                 TableCardsPlaceholder.Add(i);
                             }
@@ -662,6 +662,17 @@ public class GameController : MonoBehaviour
                             if (effect.Shuffle || effect.SwitchToOpposite)
                             {
                                 TableCardsPlaceholder.Add(i);
+                            }*/
+                            if (!effect.ReplaceToTypesActive)
+                            {
+                                TableCardsPlaceholder.Add(i);
+                            }
+                            else
+                            {
+                                if (CardsOnTable[i].card.Type == effect.ReplaceType || effect.ReplaceType == "ANY")
+                                {
+                                    TableCardsPlaceholder.Add(i);
+                                }
                             }
                         }
                         Debug.Log(TableCardsPlaceholder.Count + " random suitable cards found");
@@ -709,22 +720,22 @@ public class GameController : MonoBehaviour
             {
                 for(int i = 0; i < indexesToChange.Count; i++)
                 {
-                    if(CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.RED)
-                    {
+                    //if(CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.RED)
+                    //{
                         PlaceCardOnTable(greenCards[Random.Range(0, greenCards.Count)], indexesToChange[i], IsPlacingCardNow);
                         CardPlayedSuccesful = true;
-                    }
+                    //}
                 }
             }
             if (effect.SwitchToRed)
             {
                 for (int i = 0; i < indexesToChange.Count; i++)
                 {
-                    if (CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.GREEN)
-                    {
+                    //if (CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.GREEN)
+                    //{
                         PlaceCardOnTable(redCards[Random.Range(0, redCards.Count)], indexesToChange[i], IsPlacingCardNow);
                         CardPlayedSuccesful = true;
-                    }
+                    //}
                 }
             }
             if (effect.SwitchToOpposite)
@@ -751,17 +762,28 @@ public class GameController : MonoBehaviour
                 for(int i = 0; i < indexesToChange.Count; i++)
                 {
                     unshuffled.Add(CardsOnTable[indexesToChange[i]].card);
+                    Debug.Log(unshuffled[i].cardColor);
+                    Debug.Log(unshuffled.Count);
+
                 }
-                List<CardObject> shuffled = new List<CardObject>();
+                /*List<CardObject> shuffled = new List<CardObject>();
                 while(unshuffled.Count > 0)
                 {
                     var indexToShuffle = Random.Range(0, unshuffled.Count);
                     shuffled.Add(unshuffled[indexToShuffle]);
                     unshuffled.RemoveAt(indexToShuffle);
-                }
-                for(int i = 0; i < shuffled.Count; i++)
+                }*/
+                for (int i = unshuffled.Count - 1; i > -1; i--)
                 {
-                    PlaceCardOnTable(shuffled[i], indexesToChange[i], IsPlacingCardNow);
+                    int j = Random.Range(0, i + 1);
+                    var temp = unshuffled[i];
+                    unshuffled[i] = unshuffled[j];
+                    unshuffled[j] = temp;
+                }
+                for (int i = 0; i < unshuffled.Count; i++)
+                {
+                    //Debug.Log(unshuffled[i].cardColor);
+                    PlaceCardOnTable(unshuffled[i], indexesToChange[i], IsPlacingCardNow);
                 }
                 CardPlayedSuccesful = true;
             }
