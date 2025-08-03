@@ -43,6 +43,7 @@ public class GameController : MonoBehaviour
     public Sprite WinSprite;
     public Sprite LoseSprite;
     public GameObject MarkerParticles;
+    public GameObject LoseParticles;
 
     public int DesiredNumberOfSteps;
     public float DistFromCenter;
@@ -114,12 +115,23 @@ public class GameController : MonoBehaviour
         //MakeNewStep();
     }
 
+    float timePassed = 0.5f;
+    bool gameStarted = false;
     void Update()
     {
+        if(timePassed > 0)
+        {
+            timePassed -= Time.deltaTime;
+        }
+        if(timePassed < 0 && !gameStarted)
+        {
+            gameStarted = true;
+            MakeNewStep();
+        }
         Pointer.transform.up = Vector3.Lerp(Pointer.transform.up, PointerTarget, 0.1f);
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            MakeNewStep();
+            //MakeNewStep();
             if (ScreenBlocker.activeInHierarchy)
             {
                 RestartGame();
@@ -158,9 +170,17 @@ public class GameController : MonoBehaviour
             }
             else
             {
-                Destroy(CardsOnTable[index].gameObject);
+                var holder = CardsOnTable[index].gameObject;
                 CardsOnTable[index] = cardController;
+                var destroy = holder.AddComponent<DestroyInThreeSeconds>();
+                destroy.GetComponent<Animator>().enabled = false;
+                destroy.TimeToDestroy = 0.5f;
+                destroy.RescaleBeforeDestroy = true;
             }
+            /**if (StepIndex != 0)
+            {
+                MakeNewStep();
+            }*/
         }
     }
 
@@ -499,7 +519,7 @@ public class GameController : MonoBehaviour
                         {
                             foreach (CardController card in ParticleCards)
                             {
-                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                                Instantiate(LoseParticles, card.transform.position, MarkerParticles.transform.rotation);
                             }
                             LoseAllGame();
                         }
@@ -845,6 +865,7 @@ public class GameController : MonoBehaviour
         if (CardPlayedSuccesful && IsPlacingCardNow)
         {
             RemoveCardFromHand(cardController);
+            MakeNewStep();
         }
         else if(!CardPlayedSuccesful && IsPlacingCardNow)
         {

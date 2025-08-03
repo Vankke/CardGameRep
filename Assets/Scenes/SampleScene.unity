@@ -459,6 +459,7 @@ MonoBehaviour:
   WinSprite: {fileID: 1814383776624813866, guid: ec9f432db1ccba14ea3fb0eb9601854e, type: 3}
   LoseSprite: {fileID: 7445524387538162215, guid: d2da66bd5843d3f43b4db204cc0a260d, type: 3}
   MarkerParticles: {fileID: 6850831488761688788, guid: 7263cacc73efd6541a9ba479e1f61e7c, type: 3}
+  LoseParticles: {fileID: 6850831488761688788, guid: 97c5207289bc77a4d8e26c70b05f131e, type: 3}
   DesiredNumberOfSteps: 10
   DistFromCenter: 3.5
   CardPlacePrefab: {fileID: 3752519957598946574, guid: 11a541147462c1a44bf845d14bc0992f, type: 3}
@@ -1750,7 +1751,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1460332128}
   m_OnClick:
     m_PersistentCalls:
