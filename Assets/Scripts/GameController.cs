@@ -1,9 +1,13 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
+    QuestController questController;
     public List<CardObject> TableDeck;
     public List<HandCardObject> HandDeck;
 
@@ -22,11 +26,22 @@ public class GameController : MonoBehaviour
     public GameObject Pointer;
     public int StepIndex;
     public int CurrentHour;
+    public int CurrentQuestsGroup;
 
     public Vector3 PointerTarget;
 
+    public CardUIController selectedCard;
+
+    public GameObject ScreenBlocker;
+    public TextMeshProUGUI WinLoseText;
+    public Image WinLoseImg;
+    public Sprite WinSprite;
+    public Sprite LoseSprite;
+    public GameObject MarkerParticles;
+
     void Start()
     {
+        questController = GameObject.Find("QuestController").GetComponent<QuestController>();
         CardsOnTable = new List<CardController>();
         playingField = GameObject.Find("Playing field");
         var children = playingField.transform.childCount;
@@ -53,7 +68,7 @@ public class GameController : MonoBehaviour
 
         for (int i = 0; i < CardPlaces.Count; i++)
         {
-            PlaceCardOnTable(TableDeck[Random.Range(0, TableDeck.Count)], i);
+            PlaceCardOnTable(TableDeck[Random.Range(0, TableDeck.Count)], i, true);
         }
 
         PointerTarget = transform.up;
@@ -61,11 +76,11 @@ public class GameController : MonoBehaviour
         var arrayOfHandCards = Resources.LoadAll("ScriptableObjects/HandCards", typeof(HandCardObject));
         Debug.Log(arrayOfHandCards.Length);
         List<HandCardObject> ListInOrder = new List<HandCardObject>();
-        for(int i = 0; i < arrayOfHandCards.Length; i++)
+        for (int i = 0; i < arrayOfHandCards.Length; i++)
         {
             ListInOrder.Add((HandCardObject)arrayOfHandCards[i]);
         }
-        while(ListInOrder.Count > 0)
+        while (ListInOrder.Count > 0)
         {
             var randIndex = Random.Range(0, ListInOrder.Count);
             HandDeck.Add(ListInOrder[randIndex]);
@@ -85,26 +100,37 @@ public class GameController : MonoBehaviour
         {
             for (int i = 0; i < CardPlaces.Count; i++)
             {
-                PlaceCardOnTable(TableDeck[Random.Range(0, TableDeck.Count)], i);
+                PlaceCardOnTable(TableDeck[Random.Range(0, TableDeck.Count)], i, true);
             }
+        }
+        if (Input.GetMouseButtonDown(0))
+        {
+            DeselectCard();
         }
     }
 
-    public void PlaceCardOnTable(CardObject card, int index)
+    public void PlaceCardOnTable(CardObject card, int index, bool NowPlacingCards)
     {
-        GameObject spawningObj = card.prefab;
-        var instantiated = Instantiate(spawningObj, CardPlaces[index].transform.position, Quaternion.identity);
-        var cardController = instantiated.GetComponent<CardController>();
-        cardController.card = card;
-        cardController.gameController = this;
-        if (CardsOnTable.Count <= index)
+        if (!NowPlacingCards)
         {
-            CardsOnTable.Add(cardController);
+            CardsOnTable[index].SelectLightGameobject.gameObject.SetActive(true);
         }
-        else
+        if (NowPlacingCards)
         {
-            Destroy(CardsOnTable[index].gameObject);
-            CardsOnTable[index] = cardController;
+            GameObject spawningObj = card.prefab;
+            var instantiated = Instantiate(spawningObj, CardPlaces[index].transform.position, Quaternion.identity);
+            var cardController = instantiated.GetComponent<CardController>();
+            cardController.card = card;
+            cardController.gameController = this;
+            if (CardsOnTable.Count <= index)
+            {
+                CardsOnTable.Add(cardController);
+            }
+            else
+            {
+                Destroy(CardsOnTable[index].gameObject);
+                CardsOnTable[index] = cardController;
+            }
         }
     }
 
@@ -147,6 +173,328 @@ public class GameController : MonoBehaviour
                 GiveCardToHand(randomCard);
             }
         }
+        foreach (CardUIController card in CardsInHand)
+        {
+            card.RandomIndexesToChange.Clear();
+        }
+        DeselectCard();
+        CheckQuests();
+    }
+
+    public void CheckQuests()  //опнбепйю йбеярнб
+    {
+        
+
+        // опнбепйю сякнбхи йбеярнб
+        if (questController.QuestPanels.Count != 0)
+        {
+            foreach (QuestPanelController questPanel in questController.QuestPanels)
+            {
+                List<CardController> ParticleCards = new List<CardController>();
+                if (!questPanel.quest.Completed)
+                {
+                    bool QuestWon = false;
+                    bool QuestLost = false;
+                    // бшхцпшь он жберс
+                    if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_COLOR_WIN) // бшхцпшь он жберс
+                    {
+                        List<CardController> winCards = new List<CardController>();
+                        CardController prevCard = null;
+                        foreach (CardController cardController in CardsOnTable)
+                        {
+                            if (cardController.card.cardColor == questPanel.quest.WinColor) //хыел яннрберярбсчысч йюпрс
+                            {
+                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_QUANTITY) //янпрхпсел он йнкхвеярбс мю онке
+                                {
+                                    winCards.Add(cardController);
+                                }
+                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_COMBINATION) //он онпъдйс
+                                {
+                                    if (winCards.Count >= questPanel.quest.CardQToWin)
+                                    {
+                                        continue;
+                                    }
+                                    if (prevCard != null && prevCard.card.cardColor == cardController.card.cardColor)
+                                    {
+                                        winCards.Add(cardController);
+                                    }
+                                    else
+                                    {
+                                        winCards.Clear();
+                                    }
+                                    if (prevCard == null)
+                                    {
+                                        winCards.Add(cardController);
+                                    }
+                                    prevCard = cardController;
+                                }
+                            }
+                        }
+                        if (winCards.Count >= questPanel.quest.CardQToWin)
+                        {
+                            QuestWon = true;
+                            ParticleCards = winCards;
+                            /*foreach(CardController card in winCards)
+                            {
+                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                            }*/
+                        }
+                    }
+                    //бшхцпшь он рхос
+                    if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_TYPE_WIN)  //бшхцпшь он рхос
+                    {
+                        List<CardController> winCards = new List<CardController>();
+                        CardController prevCard = null;
+                        foreach (CardController cardController in CardsOnTable)
+                        {
+                            if (cardController.card.Type == questPanel.quest.WinningType) //хыел яннрберярбсчысч йюпрс
+                            {
+                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_QUANTITY) //он йнкхвеярбс мю онке
+                                    winCards.Add(cardController);
+
+                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_COMBINATION) //он онпъдйс
+                                {
+                                    if (winCards.Count >= questPanel.quest.CardQToWin)
+                                    {
+                                        continue;
+                                    }
+                                    if (prevCard != null && prevCard.card.Type == cardController.card.Type)
+                                    {
+                                        winCards.Add(cardController);
+                                    }
+                                    else
+                                    {
+                                        winCards.Clear();
+                                    }
+                                    if (prevCard == null)
+                                    {
+                                        winCards.Add(cardController);
+                                    }
+                                    prevCard = cardController;
+                                }
+                            }
+                        }
+                        if (winCards.Count > questPanel.quest.CardQToWin)
+                        {
+                            QuestWon = true;
+                            ParticleCards = winCards;
+
+                            /*
+                            foreach (CardController card in winCards)
+                            {
+                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                            }*/
+                        }
+                    }
+                    // опнхцпшь он жберс
+                    if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_COLOR_LOSE) // опнхцпшь он жберс
+                    {
+                        List<CardController> loseCards = new List<CardController>();
+                        CardController prevCard = null;
+                        foreach (CardController cardController in CardsOnTable)
+                        {
+                            if (cardController.card.cardColor == questPanel.quest.LoseColor) //хыел яннрберярбсчысч йюпрс
+                            {
+                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_QUANTITY) //янпрхпсел он йнкхвеярбс мю онке
+                                {
+                                    loseCards.Add(cardController);
+                                }
+                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_COMBINATION) //он онпъдйс
+                                {
+                                    if (loseCards.Count >= questPanel.quest.CardQToLose)
+                                    {
+                                        continue;
+                                    }
+                                    if (prevCard != null && prevCard.card.cardColor == cardController.card.cardColor)
+                                    {
+                                        loseCards.Add(cardController);
+                                    }
+                                    else
+                                    {
+                                        loseCards.Clear();
+                                    }
+                                    if (prevCard == null)
+                                    {
+                                        loseCards.Add(cardController);
+                                    }
+                                    prevCard = cardController;
+                                }
+                            }
+                        }
+                        if (loseCards.Count >= questPanel.quest.CardQToLose)
+                        {
+                            QuestLost = true;
+                            ParticleCards = loseCards;
+
+                            /*
+                            foreach (CardController card in loseCards)
+                            {
+                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                            }*/
+                        }
+                    }
+                    //опнхцпшь он рхос
+                    if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_TYPE_LOSE)  //опнхцпшь он рхос
+                    {
+                        List<CardController> loseCards = new List<CardController>();
+                        CardController prevCard = null;
+                        foreach (CardController cardController in CardsOnTable)
+                        {
+                            if (cardController.card.Type == questPanel.quest.LosingType) //хыел яннрберярбсчысч йюпрс
+                            {
+                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_QUANTITY) //он йнкхвеярбс мю онке
+                                {
+                                    loseCards.Add(cardController);
+                                }
+
+                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_COMBINATION) //он онпъдйс
+                                {
+                                    if (loseCards.Count >= questPanel.quest.CardQToLose)
+                                    {
+                                        continue;
+                                    }
+                                    if (prevCard != null && prevCard.card.Type == cardController.card.Type)
+                                    {
+                                        loseCards.Add(cardController);
+                                    }
+                                    else
+                                    {
+                                        loseCards.Clear();
+                                    }
+                                    if (prevCard == null)
+                                    {
+                                        loseCards.Add(cardController);
+                                    }
+                                    prevCard = cardController;
+                                }
+                            }
+                        }
+                        if (loseCards.Count > questPanel.quest.CardQToWin)
+                        {
+                            QuestLost = true;
+                            ParticleCards = loseCards;
+
+                            /*
+                            foreach (CardController card in loseCards)
+                            {
+                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                            }*/
+                        }
+                    }
+
+                    if (QuestWon && !QuestLost)
+                    {
+                        questPanel.quest.WinTurnTracker++;
+                        if (questPanel.quest.WinTurnTracker > questPanel.quest.TurnQToWin) //йбеяр гюбепь╗м
+                        {
+                            foreach (CardController card in ParticleCards)
+                            {
+                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                            }
+                            questPanel.quest.Completed = true;
+                            questPanel.CompletionMarker.SetActive(true);
+                        }
+                    }
+                    else if (!QuestWon)
+                    {
+                        questPanel.quest.WinTurnTracker = 0;
+                    }
+                    if (QuestLost && !QuestWon)
+                    {
+                        questPanel.quest.LoseTurnTracker++;
+                        if (questPanel.quest.LoseTurnTracker > questPanel.quest.TurnQToLose)
+                        {
+                            foreach (CardController card in ParticleCards)
+                            {
+                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
+                            }
+                            LoseAllGame();
+                        }
+                    }
+                    else if (!QuestLost)
+                    {
+                        questPanel.quest.LoseTurnTracker = 0;
+                    }
+                }
+            }
+        }
+
+        bool AllQuestsCompleted = false;
+        if (questController.QuestPanels.Count != 0)  //опнбепхрэ, бяе кх йбеярш бшонкмемш
+        {
+            AllQuestsCompleted = true;
+            foreach (QuestPanelController questPanel in questController.QuestPanels)
+            {
+                if (!questPanel.quest.Completed)
+                {
+                    AllQuestsCompleted = false;
+                }
+            }
+            if (AllQuestsCompleted)
+            {
+                CurrentQuestsGroup++;
+            }
+        }
+        if (AllQuestsCompleted || questController.QuestPanels.Count == 0)
+        {
+            SpawnQuests();
+        }
+    }
+    public void SpawnQuests()
+    {
+        if (CurrentQuestsGroup < questController.QuestGroups.Count)  //еякх еы╗ ме йнмеж хцпш
+        {
+            if (questController.QuestPanels.Count != 0)  //опнбепхрэ, еярэ кх оюмекх йбеярнб мю щйпюме х смхврнфхрэ
+            {
+                while (questController.QuestPanels.Count > 0)
+                {
+                    var holder = questController.QuestPanels[0];
+                    questController.QuestPanels.Remove(holder);
+                    holder.StartSelfDestruct();
+                }
+            }
+            var questGroupToSpawn = questController.QuestGroups[CurrentQuestsGroup];   //бшахпюел цпсоос йбеярнб дкъ яоюбмю
+            if (questGroupToSpawn.addedCardToDeck.Count != 0)
+            {
+                TableDeck.AddRange(questGroupToSpawn.addedCardToDeck);
+            }
+            if (questGroupToSpawn.addedCardToHand.Count != 0)
+            {
+                HandDeck.AddRange(questGroupToSpawn.addedCardToHand);
+            }
+            for(int i = 0; i < questGroupToSpawn.Quests.Count; i++)
+            {
+                var spawned = Instantiate(questController.questPanelPrefab, 
+                questController.QuestPanelScroll.position, 
+                Quaternion.identity, 
+                questController.QuestPanelScroll);
+                var spawnedController = spawned.GetComponent<QuestPanelController>();
+                spawnedController.quest = questGroupToSpawn.Quests[i];
+                questController.QuestPanels.Add(spawnedController);
+            }
+        }
+        else  //йнмеж хцпш
+        {
+            WinAllGame();
+        }
+    }
+
+    public void LoseAllGame()
+    {
+        ScreenBlocker.SetActive(true);
+        WinLoseText.text = "YOU LOST!";
+        WinLoseImg.sprite = LoseSprite;
+    }
+    public void WinAllGame()
+    {
+        ScreenBlocker.SetActive(true);
+        WinLoseText.text = "YOU WON!";
+        WinLoseImg.sprite = WinSprite;
+
+    }
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(0);
     }
 
     public void Reschuffle()
@@ -158,10 +506,11 @@ public class GameController : MonoBehaviour
             WastedCards.RemoveAt(rand);
         }
     }
-    public void PlaySelectedCard(CardUIController cardController)
+    public void PlaySelectedCard(CardUIController cardController, bool IsPlacingCardNow)
     {
         var handCard = cardController.handCard;
         bool CardPlayedSuccesful = false;
+        selectedCard = cardController;
         foreach (HandCardObject.EffectOfCard effect in handCard.effects)
         {
             List<int> indexesToChange = new List<int>();
@@ -170,7 +519,7 @@ public class GameController : MonoBehaviour
                 case HandCardObject.AreaOfEffect.ONLY_CURRENT:
                     indexesToChange.Add(CurrentHour);
                     break;
-                case HandCardObject.AreaOfEffect.NEXT_ADJACENT: 
+                case HandCardObject.AreaOfEffect.NEXT_ADJACENT:
                     for (int i = 0; i < effect.QuantityOfEffect + 1; i++)
                     {
                         indexesToChange.Add((CurrentHour + i) % 12);
@@ -180,11 +529,11 @@ public class GameController : MonoBehaviour
                         indexesToChange.Remove(CurrentHour);
                     }
                     break;
-                case HandCardObject.AreaOfEffect.PREVIOUS_ADJACENT: 
+                case HandCardObject.AreaOfEffect.PREVIOUS_ADJACENT:
                     for (int i = 0; i < effect.QuantityOfEffect + 1; i++)
                     {
                         var indToChange = CurrentHour - i;
-                        if(indToChange < 0)
+                        if (indToChange < 0)
                         {
                             indToChange += 12;
                         }
@@ -212,7 +561,7 @@ public class GameController : MonoBehaviour
                     }
                     break;
                 case HandCardObject.AreaOfEffect.ALL_CARDS:
-                    for(int i = 0; i < CardsOnTable.Count; i++)
+                    for (int i = 0; i < CardsOnTable.Count; i++)
                     {
                         indexesToChange.Add(i);
                     }
@@ -222,16 +571,44 @@ public class GameController : MonoBehaviour
                     }
                     break;
                 case HandCardObject.AreaOfEffect.RANDOM_CARDS:
-                    var TableCardsPlaceholder = new List<int>();
-                    for (int i = 0; i < CardsOnTable.Count; i++)
+                    if (cardController.RandomIndexesToChange.Count == 0)
                     {
-                        TableCardsPlaceholder.Add(i);
+                        var TableCardsPlaceholder = new List<int>();//саефдюеляъ, врн бшапюммше пюмднлмше йюпрш мю ярнке асдср ондундхрэ онд сякнбхъ (ГЮЙНЛЛЕМВ.)
+                        for (int i = 0; i < CardsOnTable.Count; i++)
+                        {
+                            if (effect.SwitchToGreen && CardsOnTable[i].card.cardColor == CardObject.CardColor.RED)
+                            {
+                                TableCardsPlaceholder.Add(i);
+                            }
+                            if (effect.SwitchToRed && CardsOnTable[i].card.cardColor == CardObject.CardColor.GREEN)
+                            {
+                                TableCardsPlaceholder.Add(i);
+                            }
+                            if (effect.ReplaceToTypesActive && (CardsOnTable[i].card.Type == effect.ReplaceType || effect.ReplaceType == "ANY"))
+                            {
+                                TableCardsPlaceholder.Add(i);
+                            }
+                            if (effect.Shuffle || effect.SwitchToOpposite)
+                            {
+                                TableCardsPlaceholder.Add(i);
+                            }
+                        }
+                        Debug.Log(TableCardsPlaceholder.Count + " random suitable cards found");
+                        for (int i = 0; i < effect.QuantityOfEffect; i++)
+                        {
+                            if (TableCardsPlaceholder.Count > 0)
+                            {
+                                int randomPositionOfIndex = Random.Range(0, TableCardsPlaceholder.Count);
+                                int randIndex = TableCardsPlaceholder[randomPositionOfIndex];
+                                indexesToChange.Add(randIndex);
+                                TableCardsPlaceholder.RemoveAt(randomPositionOfIndex);
+                            }
+                        }                  
+                        cardController.RandomIndexesToChange = indexesToChange;
                     }
-                    for (int i = 0; i < effect.QuantityOfEffect; i++)
+                    else
                     {
-                        int randIndex = TableCardsPlaceholder[Random.Range(0, TableCardsPlaceholder.Count)];
-                        indexesToChange.Add(randIndex);
-                        TableCardsPlaceholder.RemoveAt(randIndex);
+                        indexesToChange = cardController.RandomIndexesToChange;
                     }
                     break;
                 default:
@@ -263,7 +640,7 @@ public class GameController : MonoBehaviour
                 {
                     if(CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.RED)
                     {
-                        PlaceCardOnTable(greenCards[Random.Range(0, greenCards.Count)], indexesToChange[i]);
+                        PlaceCardOnTable(greenCards[Random.Range(0, greenCards.Count)], indexesToChange[i], IsPlacingCardNow);
                         CardPlayedSuccesful = true;
                     }
                 }
@@ -274,7 +651,7 @@ public class GameController : MonoBehaviour
                 {
                     if (CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.GREEN)
                     {
-                        PlaceCardOnTable(redCards[Random.Range(0, redCards.Count)], indexesToChange[i]);
+                        PlaceCardOnTable(redCards[Random.Range(0, redCards.Count)], indexesToChange[i], IsPlacingCardNow);
                         CardPlayedSuccesful = true;
                     }
                 }
@@ -285,13 +662,13 @@ public class GameController : MonoBehaviour
                 {
                     if (CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.RED)
                     {
-                        PlaceCardOnTable(greenCards[Random.Range(0, greenCards.Count)], indexesToChange[i]);
+                        PlaceCardOnTable(greenCards[Random.Range(0, greenCards.Count)], indexesToChange[i], IsPlacingCardNow);
                         CardPlayedSuccesful = true;
                         continue;
                     }
                     if (CardsOnTable[indexesToChange[i]].card.cardColor == CardObject.CardColor.GREEN)
                     {
-                        PlaceCardOnTable(redCards[Random.Range(0, redCards.Count)], indexesToChange[i]);
+                        PlaceCardOnTable(redCards[Random.Range(0, redCards.Count)], indexesToChange[i], IsPlacingCardNow);
                         CardPlayedSuccesful = true;
                         continue;
                     }
@@ -313,7 +690,7 @@ public class GameController : MonoBehaviour
                 }
                 for(int i = 0; i < shuffled.Count; i++)
                 {
-                    PlaceCardOnTable(shuffled[i], indexesToChange[i]);
+                    PlaceCardOnTable(shuffled[i], indexesToChange[i], IsPlacingCardNow);
                 }
                 CardPlayedSuccesful = true;
             }
@@ -323,7 +700,7 @@ public class GameController : MonoBehaviour
                 List<CardObject> cardsOfReplacingType = new List<CardObject>();
                 foreach(int index in indexesToChange)
                 {
-                    if(CardsOnTable[index].card.Type == effect.ReplaceType)
+                    if(CardsOnTable[index].card.Type == effect.ReplaceType || effect.ReplaceType == "ANY")
                     {
                         indexesOfReplacedType.Add(index);
                     }
@@ -340,15 +717,33 @@ public class GameController : MonoBehaviour
                     foreach (int index in indexesOfReplacedType)
                     {
                         var randomCard = cardsOfReplacingType[Random.Range(0, cardsOfReplacingType.Count)];
-                        PlaceCardOnTable(randomCard, index);
+                        PlaceCardOnTable(randomCard, index, IsPlacingCardNow);
                     }
                     CardPlayedSuccesful = true;
                 }
             }
         }
-        if (CardPlayedSuccesful)
+        if (CardPlayedSuccesful && IsPlacingCardNow)
         {
             RemoveCardFromHand(cardController);
+        }
+        else if(!CardPlayedSuccesful && IsPlacingCardNow)
+        {
+            cardController.JitterTimer = 0.5f;
+        }
+    }
+
+    public void DeselectCard()
+    {
+        if (selectedCard != null && !selectedCard.MouseOverThisElement)
+        {
+            selectedCard.Pressed = false;
+            selectedCard = null;
+            foreach (CardController card in CardsOnTable)
+            {
+                if (card.SelectLightGameobject.activeInHierarchy)
+                    card.SelectLightGameobject.SetActive(false);
+            }
         }
     }
 }
