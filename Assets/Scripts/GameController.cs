@@ -39,11 +39,26 @@ public class GameController : MonoBehaviour
     public Sprite LoseSprite;
     public GameObject MarkerParticles;
 
+    public int DesiredNumberOfSteps;
+    public float DistFromCenter;
+    public GameObject CardPlacePrefab;
+
     void Start()
     {
         questController = GameObject.Find("QuestController").GetComponent<QuestController>();
         CardsOnTable = new List<CardController>();
         playingField = GameObject.Find("Playing field");
+
+        var cardPlace = CardPlacePrefab;
+
+        for(int i = 0; i < DesiredNumberOfSteps; i++)
+        {
+            var place = Instantiate(cardPlace, playingField.transform);
+            place.transform.localPosition = Quaternion.AngleAxis((360 / DesiredNumberOfSteps) * -1 * i, Vector3.forward) * transform.up * DistFromCenter;
+        }
+        //Destroy(cardPlace.gameObject);
+
+
         var children = playingField.transform.childCount;
         for (int i = 0; i < children; i++)
         {
@@ -154,10 +169,10 @@ public class GameController : MonoBehaviour
     public void MakeNewStep()
     {
         StepIndex++;
-        var currentHour = StepIndex % 12;
+        var currentHour = StepIndex % DesiredNumberOfSteps;
         CurrentHour = currentHour;
         Debug.Log(currentHour);
-        PointerTarget = Quaternion.AngleAxis(-30 * currentHour, Vector3.forward) * transform.up;
+        PointerTarget = Quaternion.AngleAxis((360 / DesiredNumberOfSteps) * -1 * currentHour, Vector3.forward) * transform.up;
         if (CardsInHand.Count < 5)
         {
             int MissingHandCards = 5 - CardsInHand.Count;
