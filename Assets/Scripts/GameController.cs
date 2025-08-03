@@ -188,6 +188,14 @@ public class GameController : MonoBehaviour
         // опнбепйю сякнбхи йбеярнб
         if (questController.QuestPanels.Count != 0)
         {
+            var placeholderForTableCards = new List<CardController>();
+            placeholderForTableCards.AddRange(CardsOnTable);
+            placeholderForTableCards.AddRange(CardsOnTable);
+            /*for (int i = 0; i < placeholderForTableCards.Count; i++)
+            {
+                Debug.Log(placeholderForTableCards[i].card.cardColor);
+            }*/
+
             foreach (QuestPanelController questPanel in questController.QuestPanels)
             {
                 List<CardController> ParticleCards = new List<CardController>();
@@ -195,26 +203,106 @@ public class GameController : MonoBehaviour
                 {
                     bool QuestWon = false;
                     bool QuestLost = false;
-                    // бшхцпшь он жберс
-                    if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_COLOR_WIN) // бшхцпшь он жберс
+                    
+                    
+                    //Debug.Log(placeholderForTableCards.Count);
+                    // бшхцпшь
+
+                    List<CardController> winCards = new List<CardController>();
+                    CardController prevWinCard = null;
+                    foreach (CardController cardController in CardsOnTable)
                     {
-                        List<CardController> winCards = new List<CardController>();
-                        CardController prevCard = null;
-                        foreach (CardController cardController in CardsOnTable)
+                        if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_QUANTITY) //янпрхпсел он йнкхвеярбс мю онке
                         {
-                            if (cardController.card.cardColor == questPanel.quest.WinColor) //хыел яннрберярбсчысч йюпрс
+                            if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_COLOR_WIN &&
+                                cardController.card.cardColor == questPanel.quest.WinColor)
                             {
-                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_QUANTITY) //янпрхпсел он йнкхвеярбс мю онке
+                                winCards.Add(cardController);
+                            }
+                            if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_TYPE_WIN &&
+                                cardController.card.Type == questPanel.quest.WinningType)
+                            {
+                                winCards.Add(cardController);
+                            }
+                        }
+                    }
+                    
+                    
+                    foreach (CardController cardController in placeholderForTableCards)
+                    {
+                        if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_COMBINATION) //он онпъдйс
+                        {
+                            if (winCards.Count >= questPanel.quest.CardQToWin)
+                            {
+                                continue;
+                            }
+
+                            if (prevWinCard != null)
+                            {
+                                if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_COLOR_WIN)  //он жберс
                                 {
-                                    winCards.Add(cardController);
-                                }
-                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_COMBINATION) //он онпъдйс
-                                {
-                                    if (winCards.Count >= questPanel.quest.CardQToWin)
+                                    if (prevWinCard.card.cardColor == cardController.card.cardColor 
+                                        && cardController.card.cardColor == questPanel.quest.WinColor)
                                     {
-                                        continue;
+                                        winCards.Add(cardController);
+                                        Debug.Log("AddedGreen");
                                     }
-                                    if (prevCard != null && prevCard.card.cardColor == cardController.card.cardColor)
+                                    else
+                                    {
+                                        if (winCards.Count > 0)
+                                        {
+                                            winCards.Clear();
+                                            Debug.Log("ClearedGreen");
+                                        }
+                                        else if(winCards.Count <= 0 && cardController.card.cardColor == questPanel.quest.WinColor)
+                                        {
+                                            winCards.Add(cardController);
+                                            Debug.Log("AddedGreen");
+                                        }
+                                    }
+                                }
+                                if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_TYPE_WIN)  //он рхос
+                                {
+                                    if (prevWinCard.card.Type == cardController.card.Type &&
+                                        cardController.card.Type == questPanel.quest.WinningType)
+                                    {
+                                        winCards.Add(cardController);
+                                    }
+                                    else
+                                    {
+                                        if (winCards.Count > 0)
+                                        {
+                                            winCards.Clear();
+                                            Debug.Log("ClearedGreen");
+                                        }
+                                        else if (winCards.Count <= 0 && cardController.card.Type == questPanel.quest.WinningType)
+                                        {
+                                            winCards.Add(cardController);
+                                            Debug.Log("AddedGreen");
+                                        }
+                                    }
+                                }
+                            }
+                            if (prevWinCard == null)
+                            {
+                                if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_COLOR_WIN)
+                                {
+                                    if (cardController.card.cardColor == questPanel.quest.WinColor)
+                                    {
+                                        winCards.Add(cardController);
+                                        Debug.Log("AddedGreenNull");
+
+                                    }
+                                    else
+                                    {
+                                        winCards.Clear();
+                                        Debug.Log("ClearedGreenNull");
+
+                                    }
+                                }
+                                if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_TYPE_WIN)
+                                {
+                                    if (cardController.card.Type == questPanel.quest.WinningType)
                                     {
                                         winCards.Add(cardController);
                                     }
@@ -222,164 +310,132 @@ public class GameController : MonoBehaviour
                                     {
                                         winCards.Clear();
                                     }
-                                    if (prevCard == null)
-                                    {
-                                        winCards.Add(cardController);
-                                    }
-                                    prevCard = cardController;
                                 }
                             }
-                        }
-                        if (winCards.Count >= questPanel.quest.CardQToWin)
-                        {
-                            QuestWon = true;
-                            ParticleCards = winCards;
-                            /*foreach(CardController card in winCards)
-                            {
-                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
-                            }*/
+                            //if (prevWinCard != null)
+                                //Debug.Log(prevWinCard.card.cardColor + " " + cardController.card.cardColor);
+                            prevWinCard = cardController;
                         }
                     }
-                    //бшхцпшь он рхос
-                    if (questPanel.quest.winCondition == QuestController.Quest.WinCondition.SAME_TYPE_WIN)  //бшхцпшь он рхос
+                    if (winCards.Count >= questPanel.quest.CardQToWin)
                     {
-                        List<CardController> winCards = new List<CardController>();
-                        CardController prevCard = null;
-                        foreach (CardController cardController in CardsOnTable)
-                        {
-                            if (cardController.card.Type == questPanel.quest.WinningType) //хыел яннрберярбсчысч йюпрс
-                            {
-                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_QUANTITY) //он йнкхвеярбс мю онке
-                                    winCards.Add(cardController);
+                        QuestWon = true;
+                        ParticleCards = winCards;
+                    }
 
-                                if (questPanel.quest.winMethod == QuestController.Quest.WinMethod.WIN_BY_COMBINATION) //он онпъдйс
-                                {
-                                    if (winCards.Count >= questPanel.quest.CardQToWin)
-                                    {
-                                        continue;
-                                    }
-                                    if (prevCard != null && prevCard.card.Type == cardController.card.Type)
-                                    {
-                                        winCards.Add(cardController);
-                                    }
-                                    else
-                                    {
-                                        winCards.Clear();
-                                    }
-                                    if (prevCard == null)
-                                    {
-                                        winCards.Add(cardController);
-                                    }
-                                    prevCard = cardController;
-                                }
+
+                    // опнхцпшь
+                    List<CardController> loseCards = new List<CardController>();
+                    CardController prevCard = null;
+                    foreach (CardController cardController in CardsOnTable)
+                    {
+                        if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_QUANTITY) //янпрхпсел он йнкхвеярбс мю онке
+                        {
+                            if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_COLOR_LOSE &&
+                                cardController.card.cardColor == questPanel.quest.LoseColor)
+                            {
+                                loseCards.Add(cardController);
+                            }
+                            if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_TYPE_LOSE
+                                && cardController.card.Type == questPanel.quest.LosingType)
+                            {
+                                loseCards.Add(cardController);
                             }
                         }
-                        if (winCards.Count > questPanel.quest.CardQToWin)
-                        {
-                            QuestWon = true;
-                            ParticleCards = winCards;
-
-                            /*
-                            foreach (CardController card in winCards)
-                            {
-                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
-                            }*/
-                        }
                     }
-                    // опнхцпшь он жберс
-                    if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_COLOR_LOSE) // опнхцпшь он жберс
+                    foreach (CardController cardController in placeholderForTableCards)
                     {
-                        List<CardController> loseCards = new List<CardController>();
-                        CardController prevCard = null;
-                        foreach (CardController cardController in CardsOnTable)
+                        if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_COMBINATION) //он онпъдйс
                         {
-                            if (cardController.card.cardColor == questPanel.quest.LoseColor) //хыел яннрберярбсчысч йюпрс
+                            if (loseCards.Count >= questPanel.quest.CardQToLose)
                             {
-                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_QUANTITY) //янпрхпсел он йнкхвеярбс мю онке
+                                continue;
+                            }
+
+                            if(prevCard != null)
+                            {
+                                if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_COLOR_LOSE)
                                 {
-                                    loseCards.Add(cardController);
-                                }
-                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_COMBINATION) //он онпъдйс
-                                {
-                                    if (loseCards.Count >= questPanel.quest.CardQToLose)
-                                    {
-                                        continue;
-                                    }
-                                    if (prevCard != null && prevCard.card.cardColor == cardController.card.cardColor)
+                                    if (prevCard.card.cardColor == cardController.card.cardColor 
+                                        && cardController.card.cardColor == questPanel.quest.LoseColor)
                                     {
                                         loseCards.Add(cardController);
                                     }
                                     else
                                     {
-                                        loseCards.Clear();
+                                        //loseCards.Clear();
+                                        if (loseCards.Count > 0)
+                                        {
+                                            loseCards.Clear();
+                                            Debug.Log("ClearedGreen");
+                                        }
+                                        else if (loseCards.Count <= 0 && cardController.card.cardColor == questPanel.quest.WinColor)
+                                        {
+                                            loseCards.Add(cardController);
+                                            Debug.Log("AddedGreen");
+                                        }
+                                        //Debug.Log("Cleared" + loseCards.Count);
                                     }
-                                    if (prevCard == null)
+                                }
+                                if(questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_TYPE_LOSE)
+                                {
+                                    if (prevCard.card.Type == cardController.card.Type
+                                        && cardController.card.Type == questPanel.quest.LosingType)
                                     {
                                         loseCards.Add(cardController);
                                     }
-                                    prevCard = cardController;
+                                    else
+                                    {
+                                        if (loseCards.Count > 0)
+                                        {
+                                            loseCards.Clear();
+                                            Debug.Log("ClearedGreen");
+                                        }
+                                        else if (loseCards.Count <= 0 && cardController.card.cardColor == questPanel.quest.WinColor)
+                                        {
+                                            loseCards.Add(cardController);
+                                            Debug.Log("AddedGreen");
+                                        }
+                                        //Debug.Log("Cleared" + loseCards.Count);
+                                    }
                                 }
                             }
-                        }
-                        if (loseCards.Count >= questPanel.quest.CardQToLose)
-                        {
-                            QuestLost = true;
-                            ParticleCards = loseCards;
-
-                            /*
-                            foreach (CardController card in loseCards)
+                            if (prevCard == null)
                             {
-                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
-                            }*/
-                        }
-                    }
-                    //опнхцпшь он рхос
-                    if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_TYPE_LOSE)  //опнхцпшь он рхос
-                    {
-                        List<CardController> loseCards = new List<CardController>();
-                        CardController prevCard = null;
-                        foreach (CardController cardController in CardsOnTable)
-                        {
-                            if (cardController.card.Type == questPanel.quest.LosingType) //хыел яннрберярбсчысч йюпрс
-                            {
-                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_QUANTITY) //он йнкхвеярбс мю онке
+                                if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_COLOR_LOSE)
                                 {
-                                    loseCards.Add(cardController);
-                                }
-
-                                if (questPanel.quest.loseMethod == QuestController.Quest.LoseMethod.LOSE_BY_COMBINATION) //он онпъдйс
-                                {
-                                    if (loseCards.Count >= questPanel.quest.CardQToLose)
-                                    {
-                                        continue;
-                                    }
-                                    if (prevCard != null && prevCard.card.Type == cardController.card.Type)
+                                    if (cardController.card.cardColor == questPanel.quest.LoseColor)
                                     {
                                         loseCards.Add(cardController);
                                     }
                                     else
                                     {
                                         loseCards.Clear();
+                                        //Debug.Log("Cleared" + loseCards.Count);
                                     }
-                                    if (prevCard == null)
+                                }
+                                if (questPanel.quest.loseCondition == QuestController.Quest.LoseCondition.SAME_TYPE_LOSE)
+                                {
+                                    if (prevCard.card.Type == cardController.card.Type)
                                     {
                                         loseCards.Add(cardController);
                                     }
-                                    prevCard = cardController;
+                                    else
+                                    {
+                                        loseCards.Clear();
+                                        //Debug.Log("Cleared" + loseCards.Count);
+                                    }
                                 }
                             }
+                            //if(prevCard!= null)
+                                //Debug.Log(prevCard.card.cardColor + " " + cardController.card.cardColor);
+                            prevCard = cardController;
                         }
-                        if (loseCards.Count > questPanel.quest.CardQToWin)
-                        {
-                            QuestLost = true;
-                            ParticleCards = loseCards;
-
-                            /*
-                            foreach (CardController card in loseCards)
-                            {
-                                Instantiate(MarkerParticles, card.transform.position, MarkerParticles.transform.rotation);
-                            }*/
-                        }
+                    }
+                    if (loseCards.Count >= questPanel.quest.CardQToLose)
+                    {
+                        QuestLost = true;
+                        ParticleCards = loseCards;
                     }
 
                     if (QuestWon && !QuestLost)

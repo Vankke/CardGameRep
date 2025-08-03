@@ -2579,24 +2579,7 @@ MonoBehaviour:
   QuestGroups:
   - Quests:
     - sprite: {fileID: -8884298010085377452, guid: a271f0a68b25b484ebd23c89150e0d56, type: 3}
-      Description: WIN 3 GC ADJ LOSE 5 RC
-      winMethod: 1
-      winCondition: 0
-      loseMethod: 0
-      loseCondition: 0
-      TurnQToWin: 0
-      TurnQToLose: 0
-      WinningType: 
-      WinColor: 1
-      LosingType: 
-      LoseColor: 0
-      CardQToWin: 3
-      CardQToLose: 5
-      Completed: 0
-      WinTurnTracker: 0
-      LoseTurnTracker: 0
-    - sprite: {fileID: 1814383776624813866, guid: ec9f432db1ccba14ea3fb0eb9601854e, type: 3}
-      Description: WIN 3 GC  LOSE 5 RC ADJ
+      Description: WIN 6 GC  LOSE 5 RC ADJ
       winMethod: 0
       winCondition: 0
       loseMethod: 1
@@ -2607,7 +2590,24 @@ MonoBehaviour:
       WinColor: 1
       LosingType: 
       LoseColor: 0
-      CardQToWin: 3
+      CardQToWin: 6
+      CardQToLose: 5
+      Completed: 0
+      WinTurnTracker: 0
+      LoseTurnTracker: 0
+    - sprite: {fileID: 1814383776624813866, guid: ec9f432db1ccba14ea3fb0eb9601854e, type: 3}
+      Description: WIN 4 GC ADJ  LOSE 5 RC ADJ
+      winMethod: 1
+      winCondition: 0
+      loseMethod: 1
+      loseCondition: 0
+      TurnQToWin: 0
+      TurnQToLose: 0
+      WinningType: 
+      WinColor: 1
+      LosingType: 
+      LoseColor: 0
+      CardQToWin: 4
       CardQToLose: 5
       Completed: 0
       WinTurnTracker: 0
@@ -2616,10 +2616,10 @@ MonoBehaviour:
     addedCardToHand: []
   - Quests:
     - sprite: {fileID: 5189720866907764735, guid: b7a8824e84244a14994d2e7c509c1de0, type: 3}
-      Description: WIN 5 GC LOSE 5 RC
-      winMethod: 0
+      Description: WIN 5 GC ADJ LOSE 5 RC
+      winMethod: 1
       winCondition: 0
-      loseMethod: 0
+      loseMethod: 1
       loseCondition: 0
       TurnQToWin: 0
       TurnQToLose: 0
@@ -2644,8 +2644,8 @@ MonoBehaviour:
       WinColor: 1
       LosingType: 
       LoseColor: 0
-      CardQToWin: 4
-      CardQToLose: 4
+      CardQToWin: 6
+      CardQToLose: 6
       Completed: 0
       WinTurnTracker: 0
       LoseTurnTracker: 0
