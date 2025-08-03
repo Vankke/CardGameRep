@@ -1920,7 +1920,9 @@ MonoBehaviour:
       WinTurnTracker: 0
       LoseTurnTracker: 0
     addedCardToDeck: []
-    addedCardToHand: []
+    addedCardToHand:
+    - {fileID: 11400000, guid: 9e5406e2c08366c4894956f1cf2680f4, type: 2}
+    - {fileID: 11400000, guid: d24868ed31f75be4b90889806c3a2988, type: 2}
   - Quests:
     - sprite: {fileID: 5189720866907764735, guid: b7a8824e84244a14994d2e7c509c1de0, type: 3}
       Description: WIN 5 GC ADJ LOSE 5 RC

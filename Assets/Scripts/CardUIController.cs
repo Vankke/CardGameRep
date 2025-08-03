@@ -42,7 +42,7 @@ public class CardUIController : MonoBehaviour, IPointerEnterHandler, IPointerExi
         if (gameController.CardsInHand.Count > 0)
         {
             float width = Parent.rect.width;
-            float x = (width / (gameController.QuantityOfCardsInHand + 1) * (myIndex + 1)) - (width / 2);
+            float x = (width / (gameController.CardsInHand.Count + 1) * (myIndex + 1)) - (width / 2);
             float y = 0;
             if(gameController.selectedCard == this)
             {

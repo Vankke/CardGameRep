@@ -531,7 +531,11 @@ public class GameController : MonoBehaviour
             }
             if (questGroupToSpawn.addedCardToHand.Count != 0)
             {
-                HandDeck.AddRange(questGroupToSpawn.addedCardToHand);
+                for(int i = 0; i < questGroupToSpawn.addedCardToHand.Count; i++)
+                {
+                    GiveCardToHand(questGroupToSpawn.addedCardToHand[i]);
+                }
+                //HandDeck.AddRange(questGroupToSpawn.addedCardToHand);
             }
             for(int i = 0; i < questGroupToSpawn.Quests.Count; i++)
             {
@@ -565,7 +569,7 @@ public class GameController : MonoBehaviour
     }
     public void RestartGame()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 
     public void Reschuffle()
