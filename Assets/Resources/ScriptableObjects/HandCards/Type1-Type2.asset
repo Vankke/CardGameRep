@@ -10,31 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d77625bb40290084687e95369f5f5e7a, type: 3}
-  m_Name: RandomGreenRed2Random
+  m_Name: Type1-Type2
   m_EditorClassIdentifier: 
   cardColor: 1
   effects:
-  - areaOfEffect: 4
-    SwitchToRed: 1
+  - areaOfEffect: 5
+    SwitchToRed: 0
     SwitchToGreen: 0
     SwitchToOpposite: 0
-    Shuffle: 0
+    Shuffle: 1
     ReplaceToTypesActive: 0
-    ChangeCurrentToo: 0
-    QuantityOfEffect: 2
-    ReplaceType: 
-    ReplaceToType: 
-  - areaOfEffect: 4
-    SwitchToRed: 0
-    SwitchToGreen: 1
-    SwitchToOpposite: 0
-    Shuffle: 0
-    ReplaceToTypesActive: 0
-    ChangeCurrentToo: 0
-    QuantityOfEffect: 2
-    ReplaceType: 
-    ReplaceToType: 
+    ChangeCurrentToo: 1
+    QuantityOfEffect: 0
+    ReplaceType: routine
+    ReplaceToType: social
   prefab: {fileID: 7635566131677002192, guid: ac3746b84c95979408b789dfae893384, type: 3}
   sprite: {fileID: -6813374612988561086, guid: 0ad5e98d003cb574b95750177625a846, type: 3}
-  Description: Replace 4 random cards except chosen card with 2 random <color="green">positive
-    event</color> cards and 2 random <color="red">negative event</color> cards
+  Description: Change all office routine event cards to social event cards

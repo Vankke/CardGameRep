@@ -25,6 +25,6 @@ MonoBehaviour:
     ReplaceType: 
     ReplaceToType: 
   prefab: {fileID: 7635566131677002192, guid: ac3746b84c95979408b789dfae893384, type: 3}
-  sprite: {fileID: 0}
-  Description: Replace 3 random cards except chosen card and the nearest with random
-    red cards
+  sprite: {fileID: -6813374612988561086, guid: 0ad5e98d003cb574b95750177625a846, type: 3}
+  Description: Replace 3 random cards except chosen card with random n <color="red">negative
+    event</color> cards
